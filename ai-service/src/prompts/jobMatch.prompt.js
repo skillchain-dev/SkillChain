@@ -1,0 +1,1 @@
+module.exports = ({ studentSkills, requiredSkills }) => `Compare these student skills: ${studentSkills.join(', ')} against required skills: ${requiredSkills.join(', ')}. Return JSON with score, matchingSkills, missingSkills, and suggestions.`;
