@@ -1,0 +1,2 @@
+import httpClient from '../../services/httpClient.js';
+export const jobsApi = { list: (params) => httpClient.get('/jobs', { params }), get: (id) => httpClient.get(`/jobs/${id}`), mine: () => httpClient.get('/jobs/mine'), create: (payload) => httpClient.post('/jobs', payload), update: (id, payload) => httpClient.patch(`/jobs/${id}`, payload), close: (id) => httpClient.patch(`/jobs/${id}/close`), remove: (id) => httpClient.delete(`/jobs/${id}`) };
