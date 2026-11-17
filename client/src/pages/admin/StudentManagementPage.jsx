@@ -1,0 +1,3 @@
+import { useEffect, useState } from 'react';
+import { getStudents } from '../../features/certificates/api.js';
+export default function StudentManagementPage() { const [students, setStudents] = useState([]); useEffect(() => { getStudents().then((data) => setStudents(data.students)); }, []); return <><p className="eyebrow">Admin / directory</p><h1>Students</h1><div className="panel table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Joined</th></tr></thead><tbody>{students.map((student) => <tr key={student._id}><td>{student.name}</td><td>{student.email}</td><td>{new Date(student.createdAt).toLocaleDateString()}</td></tr>)}</tbody></table></div></>; }
