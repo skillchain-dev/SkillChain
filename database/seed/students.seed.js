@@ -1,4 +1,4 @@
-export const sampleStudents = [
+const sampleStudents = [
   {
     name: 'Nikhil Baghel',
     email: 'nikhil.student@skillchain.edu',
@@ -38,5 +38,5 @@ export const sampleStudents = [
   },
 ];
 
-export default sampleStudents;
+module.exports = sampleStudents;
 

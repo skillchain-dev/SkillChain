@@ -1,4 +1,4 @@
-export const standardSkillCatalog = [
+const standardSkillCatalog = [
   { name: 'JavaScript', category: 'Frontend', demandWeight: 0.9 },
   { name: 'TypeScript', category: 'Frontend', demandWeight: 0.85 },
   { name: 'React', category: 'Frontend', demandWeight: 0.95 },
@@ -13,5 +13,5 @@ export const standardSkillCatalog = [
   { name: 'Git', category: 'DevOps', demandWeight: 0.9 },
 ];
 
-export default standardSkillCatalog;
+module.exports = standardSkillCatalog;
 

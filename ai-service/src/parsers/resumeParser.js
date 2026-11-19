@@ -1,26 +1,37 @@
 const { DEFAULT_SKILLS, findCatalogSkill, normalizeSkill } = require('../skills/skillCatalog');
 
-function normalizeInputSkills(skills, catalog) {
-  return [...new Set((skills || []).map((skill) => {
-    const value = typeof skill === 'string' ? skill : skill.name;
-    const known = findCatalogSkill(value, catalog);
-    return known ? known.normalizedName : normalizeSkill(value);
-  }).filter(Boolean))];
+function extractResumeSkills(resumeText, catalog = DEFAULT_SKILLS) {
+  if (typeof resumeText !== 'string') {
+    throw new Error('resumeText must be a string');
+  }
+
+  const text = resumeText.toLowerCase();
+  const skills = catalog
+    .filter((skill) => {
+      const names = [skill.name, ...(skill.aliases || [])]
+        .map(normalizeSkill)
+        .filter(Boolean);
+      return names.some((name) => new RegExp(`(^|[^a-z0-9])${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i').test(text));
+    })
+    .map((skill) => {
+      const normalizedName = normalizeSkill(skill.name);
+      return {
+        name: skill.name,
+        normalizedName,
+        source: 'fallback',
+      };
+    });
+
+  if (!skills.some((skill) => skill.normalizedName === 'javascript') &&
+      /\b(?:javascript|js|ecmascript)\b|\.js\b/i.test(resumeText)) {
+    skills.unshift({
+      name: 'JavaScript',
+      normalizedName: 'javascript',
+      source: 'fallback',
+    });
+  }
+
+  return { skills, source: 'fallback' };
 }
 
-function matchJob(studentSkills, requiredSkills, catalog = DEFAULT_SKILLS) {
-  const student = normalizeInputSkills(studentSkills, catalog);
-  const required = normalizeInputSkills(requiredSkills, catalog);
-  const matchingSkills = required.filter((skill) => student.includes(skill));
-  const missingSkills = required.filter((skill) => !student.includes(skill));
-  const score = required.length ? Math.round((matchingSkills.length / required.length) * 100) : 0;
-  return {
-    score,
-    matchingSkills,
-    missingSkills,
-    suggestions: missingSkills.map((skill) => `Develop ${skill} through a project or guided course.`),
-    source: 'fallback',
-  };
-}
-
-module.exports = { matchJob };
+module.exports = { extractResumeSkills };
