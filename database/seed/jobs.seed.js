@@ -1,4 +1,4 @@
-export const sampleJobs = [
+const sampleJobs = [
   {
     title: 'Graduate Full-Stack Engineer',
     companyName: 'Infosys Campus Connect',
@@ -34,5 +34,5 @@ export const sampleJobs = [
   },
 ];
 
-export default sampleJobs;
+module.exports = sampleJobs;
 
