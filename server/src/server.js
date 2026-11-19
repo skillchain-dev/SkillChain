@@ -1,6 +1,10 @@
-const app = require('./app');
 const { port, mongoUri } = require('./config/env');
 const { connectDatabase, disconnectDatabase } = require('./config/db');
+const app = require('./app');
+
+if (!process.env.AUTH_TOKEN_SECRET) {
+  console.warn('AUTH_TOKEN_SECRET is unset; authentication tokens will be invalidated when the server restarts.');
+}
 
 async function start() {
   await connectDatabase(mongoUri);
