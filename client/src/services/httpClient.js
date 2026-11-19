@@ -25,7 +25,11 @@ httpClient.interceptors.response.use(
       clearSession();
       if (onUnauthorized) onUnauthorized();
     }
-    const message = error?.response?.data?.error || error?.response?.data?.message || error.message || 'Something went wrong. Please try again.';
+    const responseError = error?.response?.data?.error;
+    const message = (typeof responseError === 'string' ? responseError : responseError?.message)
+      || error?.response?.data?.message
+      || error.message
+      || 'Something went wrong. Please try again.';
     return Promise.reject(Object.assign(new Error(message), { status: error?.response?.status, cause: error }));
   }
 );
