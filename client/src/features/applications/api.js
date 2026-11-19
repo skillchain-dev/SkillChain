@@ -1,0 +1,2 @@
+import httpClient from '../../services/httpClient.js';
+export const applicationsApi = { apply: (jobId, payload) => httpClient.post(`/applications/jobs/${jobId}`, payload), mine: () => httpClient.get('/applications/mine'), applicants: (jobId) => httpClient.get(`/applications/jobs/${jobId}`), updateStatus: (id, status) => httpClient.patch(`/applications/${id}/status`, { status }), candidates: (params) => httpClient.get('/applications/candidates', { params }) };
