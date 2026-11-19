@@ -1,4 +1,4 @@
 const { extractResumeSkills } = require('./parsers/resumeParser');
-const { matchJob } = require('./matchers/jobMatcher');
+const { matchJob } = require('./matches/jobMatcher');
 
 module.exports = { extractResumeSkills, matchJob };
