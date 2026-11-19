@@ -1,28 +1,41 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChat } from './useChat.js';
-import ChatMessage, { TypingIndicator } from './ChatMessage.jsx';
+import ChatMessage, { AiAvatar, TypingIndicator } from './ChatMessage.jsx';
+import { ChevronDownIcon, SendIcon, SparkleIcon } from './icons.jsx';
 
-const SUGGESTIONS = ['How do I improve my resume?', 'Which skills are in demand?', 'How do I verify a certificate?'];
+const SUGGESTIONS = [
+  { icon: '📄', title: 'Improve my resume', prompt: 'How do I improve my resume?' },
+  { icon: '💼', title: 'Find the right jobs', prompt: 'How can I find jobs that match my skills?' },
+  { icon: '🚀', title: 'Skills in demand', prompt: 'Which skills are in demand right now?' },
+  { icon: '✅', title: 'Verify a certificate', prompt: 'How do I verify a certificate?' },
+];
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
-  const { messages, loading, error, send, reset } = useChat();
-  const bottomRef = useRef(null);
+  const { messages, loading, error, send, reset, markDone } = useChat();
+  const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Keep the newest message in view.
-  useEffect(() => {
-    if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading, open]);
+  const scrollToBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }, []);
 
+  useEffect(() => { if (open) scrollToBottom(); }, [messages, loading, error, open, scrollToBottom]);
+  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 150); }, [open]);
+
+  // Auto-grow the textarea up to a max height.
   useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
+  }, [input]);
 
   const submit = (event) => {
     event.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
     send(input);
     setInput('');
   };
@@ -31,80 +44,132 @@ export default function ChatWidget() {
     if (event.key === 'Enter' && !event.shiftKey) submit(event);
   };
 
-  const showSuggestions = messages.length === 1 && !loading;
+  const isEmpty = messages.length === 1 && !loading;
 
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
-      {open && (
-        <section
-          role="dialog"
-          aria-label="SkillChain AI assistant"
-          className="flex h-[32rem] max-h-[calc(100vh-6rem)] w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-card border border-mist-200 bg-cream shadow-lift"
-        >
-          <header className="flex items-center justify-between bg-forest-600 px-4 py-3 text-white">
-            <div>
-              <p className="font-display text-sm font-semibold">SkillChain Assistant</p>
-              <p className="text-xs text-forest-100">AI-powered help</p>
+      {/* Chat window (always mounted so it can fade/scale smoothly) */}
+      <section
+        role="dialog"
+        aria-label="SkillChain AI assistant"
+        aria-hidden={!open}
+        className={`flex h-[34rem] max-h-[calc(100vh-6.5rem)] w-[24rem] max-w-[calc(100vw-2.5rem)] origin-bottom-right flex-col overflow-hidden rounded-2xl border border-mist-200 bg-cream shadow-lift transition-all duration-300
+          ${open ? 'visible translate-y-0 scale-100 opacity-100' : 'invisible translate-y-4 scale-95 opacity-0'}`}
+      >
+        {/* Header */}
+        <header className="relative overflow-hidden bg-gradient-to-r from-forest-700 via-forest-600 to-forest-500 px-4 py-3.5 text-white">
+          <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-clay-500/30 blur-2xl" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25 backdrop-blur">
+              <SparkleIcon className="h-5 w-5 text-white" />
             </div>
-            <div className="flex items-center gap-1">
-              <button type="button" onClick={reset} className="rounded px-2 py-1 text-xs text-forest-100 hover:bg-forest-500" title="Start a new chat">
-                New chat
-              </button>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close chat" className="rounded p-1 hover:bg-forest-500">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-              </button>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-base font-semibold leading-tight">SkillChain AI</p>
+              <p className="flex items-center gap-1.5 text-xs text-forest-100">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                </span>
+                Online · Ask me anything
+              </p>
             </div>
-          </header>
+            <button type="button" onClick={reset} className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-white/20" title="Start a new chat">
+              New chat
+            </button>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Minimize chat" className="rounded-full p-1.5 text-white transition-colors hover:bg-white/15">
+              <ChevronDownIcon />
+            </button>
+          </div>
+        </header>
 
-          <div className="flex-1 space-y-3 overflow-y-auto p-4">
-            {messages.map((m) => <ChatMessage key={m.id} role={m.role} content={m.content} />)}
-            {loading && <TypingIndicator />}
-            {error && <p className="rounded bg-danger-50 px-3 py-2 text-xs font-medium text-danger-600" role="alert">{error}</p>}
-            {showSuggestions && (
-              <div className="flex flex-wrap gap-2 pt-1">
+        {/* Messages */}
+        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          {isEmpty ? (
+            <div className="flex flex-col items-center pt-2 text-center">
+              <AiAvatar size="h-14 w-14" icon="h-7 w-7" />
+              <h3 className="mt-3 font-display text-lg font-semibold text-forest-700">Hi, I&apos;m SkillChain AI</h3>
+              <p className="mt-1 max-w-[16rem] text-sm text-mist-600">Your smart assistant for jobs, resumes, skills and certificates.</p>
+              <div className="mt-5 grid w-full grid-cols-2 gap-2.5">
                 {SUGGESTIONS.map((s) => (
-                  <button key={s} type="button" onClick={() => send(s)} className="rounded-full border border-mist-300 bg-white px-3 py-1.5 text-xs text-forest-600 hover:border-clay-500">
-                    {s}
+                  <button
+                    key={s.title}
+                    type="button"
+                    onClick={() => send(s.prompt)}
+                    className="rounded-xl border border-mist-200 bg-white p-3 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-clay-500 hover:shadow-lift"
+                  >
+                    <span className="text-lg">{s.icon}</span>
+                    <span className="mt-1 block text-xs font-semibold leading-snug text-forest-700">{s.title}</span>
                   </button>
                 ))}
               </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
+            </div>
+          ) : (
+            messages.map((m) => (
+              <ChatMessage
+                key={m.id}
+                role={m.role}
+                content={m.content}
+                animate={m.animate}
+                onTick={scrollToBottom}
+                onDone={() => markDone(m.id)}
+              />
+            ))
+          )}
+          {loading && <TypingIndicator />}
+          {error && (
+            <p role="alert" className="rounded-xl border border-danger-500/20 bg-danger-50 px-3 py-2 text-xs font-medium text-danger-600">
+              {error}
+            </p>
+          )}
+        </div>
 
-          <form onSubmit={submit} className="flex items-end gap-2 border-t border-mist-200 bg-white p-3">
+        {/* Input */}
+        <form onSubmit={submit} className="border-t border-mist-200 bg-white p-3">
+          <div className="flex items-end gap-2 rounded-2xl border border-mist-300 bg-cream px-3 py-2 transition-colors focus-within:border-clay-500 focus-within:bg-white">
             <textarea
               ref={inputRef}
               rows={1}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder="Type your question..."
+              placeholder="Ask SkillChain AI..."
               maxLength={1000}
-              className="max-h-24 flex-1 resize-none rounded border border-mist-300 px-3 py-2 text-sm outline-none focus:border-clay-500"
+              className="max-h-24 flex-1 resize-none rounded-none border-0 bg-transparent p-0 py-1 text-sm text-ink outline-none placeholder:text-mist-500"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="rounded bg-clay-500 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-clay-600 disabled:cursor-not-allowed disabled:opacity-60"
+              aria-label="Send message"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-clay-500 to-clay-600 text-white shadow-card transition-all hover:scale-105 disabled:cursor-not-allowed disabled:from-mist-300 disabled:to-mist-300 disabled:shadow-none disabled:hover:scale-100"
             >
-              Send
+              <SendIcon />
             </button>
-          </form>
-        </section>
-      )}
+          </div>
+          <p className="mt-2 text-center text-[10px] text-mist-600">AI can make mistakes. Please double-check important information.</p>
+        </form>
+      </section>
 
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={open ? 'Close AI assistant' : 'Open AI assistant'}
-        aria-expanded={open}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-clay-500 text-white shadow-lift transition-colors hover:bg-clay-600"
-      >
-        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z" />
-        </svg>
-      </button>
+      {/* Launcher */}
+      <div className="relative">
+        {!open && <span className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-clay-500/40" />}
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={open ? 'Close AI assistant' : 'Open AI assistant'}
+          aria-expanded={open}
+          className={`relative flex items-center gap-2 rounded-full bg-gradient-to-br from-forest-600 via-forest-500 to-clay-500 font-semibold text-white shadow-lift ring-2 ring-white/60 transition-all duration-300 hover:scale-105
+            ${open ? 'h-14 w-14 justify-center' : 'h-14 pl-4 pr-5 text-sm'}`}
+        >
+          {open ? (
+            <ChevronDownIcon className="h-6 w-6" />
+          ) : (
+            <>
+              <SparkleIcon className="h-5 w-5" />
+              Ask AI
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
