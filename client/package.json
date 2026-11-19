@@ -3,7 +3,28 @@
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
-	"scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },
-	"dependencies": { "@vitejs/plugin-react": "^4.3.4", "axios": "^1.7.9", "qrcode.react": "^4.2.0", "react": "^18.3.1", "react-dom": "^18.3.1", "react-router-dom": "^7.1.1", "vite": "^6.0.7" },
-	"devDependencies": { "tailwindcss": "^3.4.17", "postcss": "^8.4.49", "autoprefixer": "^10.4.20" }
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"@vitejs/plugin-react": "^4.3.4",
+		"axios": "^1.7.9",
+		"qrcode.react": "^4.2.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"react-router-dom": "^7.1.1",
+		"vite": "^6.0.7"
+	},
+	"devDependencies": {
+		"tailwindcss": "^3.4.17",
+		"postcss": "^8.4.49",
+		"autoprefixer": "^10.4.20"
+	},
+	"description": "React + Vite + Tailwind frontend for SkillChain. This package owns the frontend foundation: site\r navigation, authentication, role-based dashboard layouts, the reusable UI component library, and the\r shared API/auth services every feature module builds on.",
+	"main": "postcss.config.js",
+	"keywords": [],
+	"author": "",
+	"license": "ISC"
 }
