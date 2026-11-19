@@ -7,6 +7,7 @@ import ProtectedRoute from './ProtectedRoute.jsx';
 import RoleRoute from './RoleRoute.jsx';
 import { useAuth } from '../features/auth/useAuth.js';
 import { DASHBOARD_HOME, ROLES } from '../constants/roles.js';
+import ChatWidget from '../features/chatbot/ChatWidget.jsx';
 
 // Public marketing pages
 import HomePage from '../pages/public/HomePage.jsx';
@@ -62,7 +63,9 @@ function GuestOnly({ children }) {
 }
 
 export default function AppRoutes() {
+  const { isAuthenticated } = useAuth();
   return (
+    <>
     <Routes>
       {/* Public site */}
       <Route element={<PublicLayout />}>
@@ -115,5 +118,8 @@ export default function AppRoutes() {
       <Route path="/404" element={<NotFoundPage />} />
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
+    {/* AI chatbot: floating button on every page, only for signed-in users */}
+    {isAuthenticated && <ChatWidget />}
+    </>
   );
 }
