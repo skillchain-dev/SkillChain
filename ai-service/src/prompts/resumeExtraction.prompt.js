@@ -1,0 +1,1 @@
+module.exports = ({ resumeText, skills }) => `Extract skills from this resume and normalize them only to this catalog: ${skills.join(', ')}. Return JSON.\n\n${resumeText}`;
