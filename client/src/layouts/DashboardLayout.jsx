@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar.jsx';
 import MobileSidebar from './components/MobileSidebar.jsx';
 import Topbar from './components/Topbar.jsx';
-import ChatBot from '../features/chat/ChatBot.jsx';
 
 // Two ways to use this layout:
 //  1. Wrap a page directly:      <DashboardLayout role="student"><JobDiscoveryPage/></DashboardLayout>
@@ -22,8 +21,6 @@ export default function DashboardLayout({ children, role, title }) {
           {children ?? <Outlet />}
         </main>
       </div>
-      {/* Floating AI career assistant — available on every dashboard page */}
-      <ChatBot />
     </div>
   );
 }
