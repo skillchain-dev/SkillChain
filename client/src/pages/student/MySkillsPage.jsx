@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout.jsx';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import SkillMatrix from '../../features/skills/SkillMatrix.jsx';
@@ -30,7 +30,7 @@ export default function MySkillsPage() {
   }
 
   // Load from localStorage on mount
-  useState(() => {
+  useEffect(() => {
     try {
       const stored = localStorage.getItem('skillchain:skills');
       if (stored) setSkills(JSON.parse(stored));

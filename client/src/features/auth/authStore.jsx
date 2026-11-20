@@ -19,9 +19,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
-    try { await authApi.logout(); } catch { /* best-effort: still clear local session below */ }
+    const logoutRequest = authApi.logout();
     clearSession();
     setUser(null);
+    try { await logoutRequest; } catch { /* best-effort: local session is already cleared */ }
   }, []);
 
   // If a request ever comes back 401, drop the local session so the UI reflects it immediately.
