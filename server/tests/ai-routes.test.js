@@ -24,6 +24,24 @@ test('resume analysis and matching routes use the shared response contract', asy
   });
 });
 
+test('chat route returns assistant reply using standard envelope', async () => {
+  const chatResponse = await request(app)
+    .post('/api/ai/chat')
+    .send({ message: 'What skills are needed for a frontend developer?' });
+  assert.equal(chatResponse.status, 200);
+  assert.equal(chatResponse.body.success, true);
+  assert.ok(chatResponse.body.data.reply);
+});
+
+test('chat route rejects empty message', async () => {
+  const chatResponse = await request(app)
+    .post('/api/ai/chat')
+    .send({ message: '' });
+  assert.equal(chatResponse.status, 400);
+  assert.equal(chatResponse.body.success, false);
+  assert.equal(chatResponse.body.error.code, 'INVALID_CHAT_MESSAGE');
+});
+
 test('analytics rejects malformed summary JSON with an envelope', async () => {
   const response = await request(app).get('/api/analytics/student/summary?summary=broken');
   assert.equal(response.status, 400);
