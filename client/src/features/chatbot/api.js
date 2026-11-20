@@ -1,24 +1,33 @@
 import httpClient from '../../services/httpClient.js';
 
-// Talks to the backend AI route (server/src/routes/ai.routes.js -> POST /api/ai/chat).
-// Expected request:  { message: string, history: [{ role: 'user' | 'assistant', content: string }] }
-// Expected response: { reply: string }
-// Set VITE_MOCK_CHAT=true in client/.env to test the UI before the backend endpoint exists.
+// Talks to the backend (server/src/routes/ai.routes.js):
+//   POST   /api/ai/chat          { message, sessionId? } -> { reply, sessionId }
+//   GET    /api/ai/chat/history  -> { sessionId, messages: [{ role, content }] }
+//   DELETE /api/ai/chat/history  -> starts a fresh chat
+// Set VITE_MOCK_CHAT=true in client/.env to test the UI without the backend.
 const USE_MOCK = import.meta.env.VITE_MOCK_CHAT === 'true';
 
 const mockReply = (message) =>
   new Promise((resolve) => {
     setTimeout(() => {
-      resolve({
-        reply: `(demo reply) You asked: "${message}". Once the backend /ai/chat endpoint is connected, the real AI answer will appear here.`,
-      });
+      resolve({ reply: `(demo reply) You asked: "${message}".`, sessionId: null });
     }, 900);
   });
 
+// The server wraps every response as { success, data, error }.
+const unwrap = (response) => response.data?.data ?? response.data;
+
 export const chatbotApi = {
-  send: async ({ message, history }) => {
+  send: async ({ message, sessionId }) => {
     if (USE_MOCK) return mockReply(message);
-    const data = await httpClient.post('/ai/chat', { message, history });
-    return data.data ?? data; // httpClient returns the axios response; unwrap the body
+    return unwrap(await httpClient.post('/ai/chat', { message, sessionId }));
+  },
+  history: async () => {
+    if (USE_MOCK) return { sessionId: null, messages: [] };
+    return unwrap(await httpClient.get('/ai/chat/history'));
+  },
+  clear: async () => {
+    if (USE_MOCK) return;
+    await httpClient.delete('/ai/chat/history');
   },
 };

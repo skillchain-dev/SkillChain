@@ -14,26 +14,37 @@ export function useChat() {
   const [messages, setMessages] = useState([GREETING]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const messagesRef = useRef(messages);
-  useEffect(() => { messagesRef.current = messages; }, [messages]);
+  const sessionIdRef = useRef(null);
+
+  // Load the saved conversation from MongoDB when the widget mounts.
+  useEffect(() => {
+    let cancelled = false;
+    chatbotApi.history()
+      .then(({ sessionId, messages: saved }) => {
+        if (cancelled) return;
+        sessionIdRef.current = sessionId || null;
+        if (saved?.length) {
+          setMessages([
+            GREETING,
+            ...saved.map((m, i) => ({ id: `h-${i}`, role: m.role, content: m.content })),
+          ]);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const send = useCallback(async (text) => {
     const message = text.trim();
     if (!message || loading) return;
 
     setError('');
-    const userMsg = { id: nextId(), role: 'user', content: message };
-    // Last 10 real messages (skip the local greeting) are sent as context.
-    const history = messagesRef.current
-      .filter((m) => m.id !== 'greeting')
-      .slice(-10)
-      .map(({ role, content }) => ({ role, content }));
-
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [...prev, { id: nextId(), role: 'user', content: message }]);
     setLoading(true);
 
     try {
-      const { reply } = await chatbotApi.send({ message, history });
+      const { reply, sessionId } = await chatbotApi.send({ message, sessionId: sessionIdRef.current });
+      if (sessionId) sessionIdRef.current = sessionId;
       // animate: true => the reply is shown with a typewriter effect once.
       setMessages((prev) => [
         ...prev,
@@ -51,7 +62,10 @@ export function useChat() {
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, animate: false } : m)));
   }, []);
 
+  // "New chat": delete saved history on the server and start fresh.
   const reset = useCallback(() => {
+    chatbotApi.clear().catch(() => {});
+    sessionIdRef.current = null;
     setMessages([GREETING]);
     setError('');
   }, []);
