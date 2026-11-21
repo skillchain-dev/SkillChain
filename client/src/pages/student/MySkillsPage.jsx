@@ -1,43 +1,59 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout.jsx';
 import PageHeader from '../../components/common/PageHeader.jsx';
 import SkillMatrix from '../../features/skills/SkillMatrix.jsx';
+import { skillsApi } from '../../features/skills/api.js';
 
 /**
  * MySkillsPage — /student/skills
  *
  * Lets students manage their skill list manually. Skills extracted from
- * the Resume page can be surfaced here via localStorage or future API.
+ * the Resume page and manual additions are stored in the account API.
  */
 export default function MySkillsPage() {
   const [skills, setSkills] = useState([]);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   function handleChange(newSkills) {
     setSkills(newSkills);
     setSaved(false);
   }
 
-  function handleSave() {
-    // In a full implementation this would call a skills API endpoint.
-    // For now it stores locally so the UI is interactive end-to-end.
+  const load = useCallback(async () => {
     try {
-      localStorage.setItem('skillchain:skills', JSON.stringify(skills));
+      const { data } = await skillsApi.list();
+      setSkills(data.data);
+    } catch (requestError) {
+      setError(requestError.message || 'Could not load skills.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  async function handleSave() {
+    setError('');
+    setSaving(true);
+    try {
+      const { data } = await skillsApi.list();
+      const previous = data.data;
+      const keep = new Set(skills.map((skill) => skill._id).filter(Boolean));
+      const remove = previous.filter((skill) => !keep.has(skill._id)).map((skill) => skillsApi.remove(skill._id));
+      const existingNames = new Set(previous.filter((skill) => keep.has(skill._id)).map((skill) => skill.name.toLowerCase()));
+      const add = skills.filter((skill) => !skill._id && !existingNames.has(skill.name.toLowerCase()))
+        .map((skill) => skillsApi.add({ name: skill.name }));
+      await Promise.all([...remove, ...add]);
+      await load();
       setSaved(true);
-    } catch {
-      // ignore storage errors
+    } catch (requestError) {
+      setError(requestError.message || 'Could not save skills.');
+    } finally {
+      setSaving(false);
     }
   }
-
-  // Load from localStorage on mount
-  useState(() => {
-    try {
-      const stored = localStorage.getItem('skillchain:skills');
-      if (stored) setSkills(JSON.parse(stored));
-    } catch {
-      // ignore parse errors
-    }
-  });
 
   return (
     <DashboardLayout role="student">
@@ -51,14 +67,16 @@ export default function MySkillsPage() {
               type="button"
               className="button primary"
               onClick={handleSave}
-              disabled={skills.length === 0}
+              disabled={loading || saving}
             >
-              {saved ? 'Saved ✓' : 'Save skills'}
+              {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save skills'}
             </button>
           }
         />
 
         <div className="form-card">
+          {error && <p role="alert" className="error">{error}</p>}
+          {loading && <p className="muted">Loading skills…</p>}
           <p className="eyebrow" style={{ marginBottom: 14 }}>
             Your skill set ({skills.length})
           </p>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChat } from './useChat.js';
 import ChatMessage, { AiAvatar, TypingIndicator } from './ChatMessage.jsx';
-import { ChevronDownIcon, SendIcon, SparkleIcon } from './icons.jsx';
+import { ChevronDownIcon, CloseIcon, SendIcon, SparkleIcon } from './icons.jsx';
 
 const SUGGESTIONS = [
   { icon: '📄', title: 'Improve my resume', prompt: 'How do I improve my resume?' },
@@ -47,14 +47,14 @@ export default function ChatWidget() {
   const isEmpty = messages.length === 1 && !loading;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
-      {/* Chat window (always mounted so it can fade/scale smoothly) */}
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3 pointer-events-none">
+      {/* Chat window */}
       <section
         role="dialog"
         aria-label="SkillChain AI assistant"
         aria-hidden={!open}
-        className={`flex h-[34rem] max-h-[calc(100vh-6.5rem)] w-[24rem] max-w-[calc(100vw-2.5rem)] origin-bottom-right flex-col overflow-hidden rounded-2xl border border-mist-200 bg-cream shadow-lift transition-all duration-300
-          ${open ? 'visible translate-y-0 scale-100 opacity-100' : 'invisible translate-y-4 scale-95 opacity-0'}`}
+        className={`pointer-events-auto flex h-[34rem] max-h-[calc(100vh-6.5rem)] w-[24rem] max-w-[calc(100vw-2.5rem)] origin-bottom-right flex-col overflow-hidden rounded-2xl border border-mist-200 bg-cream shadow-lift transition-all duration-300
+          ${open ? 'visible translate-y-0 scale-100 opacity-100' : 'hidden translate-y-4 scale-95 opacity-0'}`}
       >
         {/* Header */}
         <header className="relative overflow-hidden bg-gradient-to-r from-forest-700 via-forest-600 to-forest-500 px-4 py-3.5 text-white">
@@ -70,13 +70,13 @@ export default function ChatWidget() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
                 </span>
-                Online · Ask me anything
+                Online · Career Assistant
               </p>
             </div>
-            <button type="button" onClick={reset} className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-white/20" title="Start a new chat">
+            <button type="button" onClick={reset} className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-white/20 !border-0" title="Start a new chat">
               New chat
             </button>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Minimize chat" className="rounded-full p-1.5 text-white transition-colors hover:bg-white/15">
+            <button type="button" onClick={() => setOpen(false)} aria-label="Minimize chat" className="rounded-full p-1.5 text-white transition-colors hover:bg-white/15 !border-0">
               <ChevronDownIcon />
             </button>
           </div>
@@ -134,13 +134,13 @@ export default function ChatWidget() {
               onKeyDown={onKeyDown}
               placeholder="Ask SkillChain AI..."
               maxLength={1000}
-              className="max-h-24 flex-1 resize-none rounded-none border-0 bg-transparent p-0 py-1 text-sm text-ink outline-none placeholder:text-mist-500"
+              className="max-h-24 flex-1 resize-none !rounded-none !border-0 bg-transparent !p-0 !py-1 text-sm text-ink outline-none placeholder:text-mist-500"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
               aria-label="Send message"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-clay-500 to-clay-600 text-white shadow-card transition-all hover:scale-105 disabled:cursor-not-allowed disabled:from-mist-300 disabled:to-mist-300 disabled:shadow-none disabled:hover:scale-100"
+              className="flex h-8 w-8 shrink-0 items-center justify-center !rounded-full bg-gradient-to-br from-clay-500 to-clay-600 text-white shadow-card transition-all hover:scale-105 disabled:cursor-not-allowed disabled:from-mist-300 disabled:to-mist-300 disabled:shadow-none disabled:hover:scale-100 !p-0 !border-0"
             >
               <SendIcon />
             </button>
@@ -150,22 +150,22 @@ export default function ChatWidget() {
       </section>
 
       {/* Launcher */}
-      <div className="relative">
-        {!open && <span className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-clay-500/40" />}
+      <div className="relative pointer-events-auto">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close AI assistant' : 'Open AI assistant'}
           aria-expanded={open}
-          className={`relative flex items-center gap-2 rounded-full bg-gradient-to-br from-forest-600 via-forest-500 to-clay-500 font-semibold text-white shadow-lift ring-2 ring-white/60 transition-all duration-300 hover:scale-105
-            ${open ? 'h-14 w-14 justify-center' : 'h-14 pl-4 pr-5 text-sm'}`}
+          className={`relative flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-forest-600 via-forest-500 to-clay-500 font-semibold text-white shadow-lift ring-2 ring-white/60 transition-all duration-300 hover:scale-105 !border-0
+            ${open ? 'h-12 w-12 !p-0' : 'h-12 px-4 text-sm'}`}
         >
           {open ? (
-            <ChevronDownIcon className="h-6 w-6" />
+            <CloseIcon className="h-5 w-5" />
           ) : (
             <>
-              <SparkleIcon className="h-5 w-5" />
-              Ask AI
+              <SparkleIcon className="h-5 w-5 text-amber-300" />
+              <span>Ask AI</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-forest-600" title="Online" />
             </>
           )}
         </button>

@@ -6,6 +6,7 @@ const StudentProfile = require('../src/models/StudentProfile.model');
 const RecruiterProfile = require('../src/models/RecruiterProfile.model');
 const Skill = require('../src/models/Skill.model');
 const Job = require('../src/models/Job.model');
+const Project = require('../src/models/Project.model');
 const Certificate = require('../src/models/Certificate.model');
 const sampleStudents = require('../../database/seed/students.seed');
 const sampleJobs = require('../../database/seed/jobs.seed');
@@ -21,9 +22,12 @@ async function seed() {
       RecruiterProfile.deleteMany({}),
       Skill.deleteMany({}),
       Job.deleteMany({}),
+      Project.deleteMany({}),
       Certificate.deleteMany({}),
     ]);
   }
+
+  const seededStudents = [];
 
   for (const sample of sampleStudents) {
     const password = await bcrypt.hash(sample.password, 12);
@@ -32,6 +36,7 @@ async function seed() {
       { name: sample.name, password, role: 'student' },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
+    seededStudents.push(user);
 
     await StudentProfile.findOneAndUpdate(
       { user: user._id },
@@ -54,6 +59,35 @@ async function seed() {
     }
   }
 
+  // Seed sample projects for students
+  if (seededStudents.length >= 2) {
+    await Project.findOneAndUpdate(
+      { student: seededStudents[0]._id, title: 'SkillChain Verification DApp' },
+      {
+        student: seededStudents[0]._id,
+        title: 'SkillChain Verification DApp',
+        description: 'Decentralized verifiable credential registry built with React, Hardhat, Solidity, and Node.js.',
+        technologies: ['React', 'Solidity', 'Node.js', 'Ethers.js'],
+        githubLink: 'https://github.com/skillchain-dev/SkillChain',
+        liveDemoLink: 'http://localhost:5173',
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    await Project.findOneAndUpdate(
+      { student: seededStudents[1]._id, title: 'Cloud Observability & Deployment Engine' },
+      {
+        student: seededStudents[1]._id,
+        title: 'Cloud Observability & Deployment Engine',
+        description: 'Automated CI/CD pipeline and multi-service deployment orchestrator using Docker and Express.',
+        technologies: ['Docker', 'Node.js', 'Express', 'MongoDB'],
+        githubLink: 'https://github.com/skillchain-dev/pipeline',
+        liveDemoLink: '',
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
+
   const recruiterPassword = await bcrypt.hash('Password@123', 12);
   const recruiter = await User.findOneAndUpdate(
     { email: 'recruiter@skillchain.edu' },
@@ -67,6 +101,14 @@ async function seed() {
     { upsert: true, new: true, setDefaultsOnInsert: true },
   );
 
+  // Seed faculty admin
+  const adminPassword = await bcrypt.hash('Password@123', 12);
+  await User.findOneAndUpdate(
+    { email: 'admin@skillchain.edu' },
+    { name: 'SkillChain Faculty Admin', password: adminPassword, role: 'admin' },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+
   for (const job of sampleJobs) {
     await Job.findOneAndUpdate(
       { title: job.title, companyName: job.companyName },
@@ -75,21 +117,33 @@ async function seed() {
     );
   }
 
-  for (const certificate of sampleCertificates) {
+  // Seed certificates and link to students: first approved, second pending for admin review
+  for (let i = 0; i < sampleCertificates.length; i++) {
+    const cert = sampleCertificates[i];
+    const assignedStudent = seededStudents[i % seededStudents.length];
+    const status = i === 1 ? 'pending' : (cert.status || 'approved');
     await Certificate.findOneAndUpdate(
-      { certificateId: certificate.certificateId },
-      certificate,
+      { certificateId: cert.certificateId },
+      {
+        ...cert,
+        status,
+        student: assignedStudent?._id,
+      },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
   }
 
   const counts = {
     users: await User.countDocuments(),
+    students: await User.countDocuments({ role: 'student' }),
     studentProfiles: await StudentProfile.countDocuments(),
     recruiters: await User.countDocuments({ role: 'recruiter' }),
+    admins: await User.countDocuments({ role: 'admin' }),
     skills: await Skill.countDocuments(),
+    projects: await Project.countDocuments(),
     jobs: await Job.countDocuments(),
     certificates: await Certificate.countDocuments(),
+    pendingCertificates: await Certificate.countDocuments({ status: 'pending' }),
   };
 
   console.log(JSON.stringify(counts));

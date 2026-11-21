@@ -19,6 +19,7 @@ import NotFoundPage from '../pages/public/NotFoundPage.jsx';
 import LoginPage from '../pages/auth/LoginPage.jsx';
 import RegisterPage from '../pages/auth/RegisterPage.jsx';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage.jsx';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage.jsx';
 
 // Public verification
 import PublicVerificationPage from '../pages/verification/PublicVerificationPage.jsx';
@@ -81,6 +82,7 @@ export default function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       {/* Student — pages manage their own DashboardLayout */}
@@ -105,12 +107,11 @@ export default function AppRoutes() {
       <Route path="/recruiter/company" element={<RoleRoute allow={[ROLES.RECRUITER]}><CompanyProfilePage /></RoleRoute>} />
       <Route path="/recruiter/analytics" element={<RoleRoute allow={[ROLES.RECRUITER]}><RecruiterAnalyticsPage /></RoleRoute>} />
 
-      {/* Admin — dashboard manages its own DashboardLayout; the remaining pages below
-          still render bare content, so they're wrapped here until their owners update them */}
+      {/* Admin — pages manage their own DashboardLayout */}
       <Route path="/admin" element={<RoleRoute allow={[ROLES.ADMIN]}><AdminDashboardPage /></RoleRoute>} />
-      <Route path="/admin/certificates" element={<RoleRoute allow={[ROLES.ADMIN]}><DashboardLayout role="admin"><CertificateApprovalPage /></DashboardLayout></RoleRoute>} />
-      <Route path="/admin/certificates/:certificateId" element={<RoleRoute allow={[ROLES.ADMIN]}><DashboardLayout role="admin"><CertificateDetailsPage /></DashboardLayout></RoleRoute>} />
-      <Route path="/admin/students" element={<RoleRoute allow={[ROLES.ADMIN]}><DashboardLayout role="admin"><StudentManagementPage /></DashboardLayout></RoleRoute>} />
+      <Route path="/admin/certificates" element={<RoleRoute allow={[ROLES.ADMIN]}><CertificateApprovalPage /></RoleRoute>} />
+      <Route path="/admin/certificates/:certificateId" element={<RoleRoute allow={[ROLES.ADMIN]}><CertificateDetailsPage /></RoleRoute>} />
+      <Route path="/admin/students" element={<RoleRoute allow={[ROLES.ADMIN]}><StudentManagementPage /></RoleRoute>} />
       <Route path="/admin/recruiters" element={<RoleRoute allow={[ROLES.ADMIN]}><RecruiterManagementPage /></RoleRoute>} />
       <Route path="/admin/jobs" element={<RoleRoute allow={[ROLES.ADMIN]}><JobModerationPage /></RoleRoute>} />
       <Route path="/admin/analytics" element={<RoleRoute allow={[ROLES.ADMIN]}><AdminAnalyticsPage /></RoleRoute>} />

@@ -11,10 +11,11 @@ function sign(input) {
   return crypto.createHmac('sha256', authTokenSecret).update(input).digest('base64url');
 }
 
-function createAccessToken(userId) {
+function createAccessToken(userId, tokenVersion = 0) {
   const header = encode({ alg: 'HS256', typ: 'JWT' });
   const payload = encode({
     sub: String(userId),
+    ver: tokenVersion,
     exp: Math.floor(Date.now() / 1000) + TOKEN_LIFETIME_SECONDS,
   });
   const content = `${header}.${payload}`;
@@ -40,7 +41,9 @@ function verifyAccessToken(token) {
     const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf8'));
     if (header.alg !== 'HS256' || typeof payload.sub !== 'string' || !payload.sub) return null;
     if (!Number.isFinite(payload.exp) || payload.exp <= Math.floor(Date.now() / 1000)) return null;
-    return { sub: payload.sub };
+    const ver = payload.ver === undefined ? 0 : payload.ver;
+    if (!Number.isInteger(ver) || ver < 0) return null;
+    return { sub: payload.sub, ver };
   } catch {
     return null;
   }

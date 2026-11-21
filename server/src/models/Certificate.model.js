@@ -6,6 +6,7 @@ const certificateSchema = new mongoose.Schema({
   title: { type: String, required: true },
   issuer: { type: String, required: true },
   issueDate: { type: Date },
+  fileUrl: { type: String, default: '' },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending', index: true },
   certificateHash: { type: String, default: '' },
   chainTxHash: { type: String, default: '' },

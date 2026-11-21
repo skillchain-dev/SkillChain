@@ -3,12 +3,15 @@ const resumeController = require('../controllers/resume.controller');
 const aiController = require('../controllers/ai.controller');
 const chatController = require('../controllers/chat.controller');
 const { createAiRateLimit } = require('../middleware/aiRateLimit');
+const requireAuth = require('../middleware/requireAuth');
+const asyncHandler = require('../utils/asyncHandler');
 
 const router = express.Router();
+router.use(requireAuth);
 router.use(createAiRateLimit());
 
-router.post('/resume/analyze', resumeController.analyze);
-router.post('/jobs/match', aiController.match);
-router.post('/chat', chatController.chat);
+router.post('/resume/analyze', asyncHandler(resumeController.analyze));
+router.post('/jobs/match', asyncHandler(aiController.match));
+router.post('/chat', asyncHandler(chatController.chat));
 
 module.exports = router;

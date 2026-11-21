@@ -18,13 +18,12 @@ async function _geminiMatch(client, student, required, score, matchingSkills, mi
   try {
     const prompt = jobMatchPrompt({ studentSkills: student, requiredSkills: required });
 
-    const interaction = await client.interactions.create({
-      model: 'gemini-3.8-flash',
-      input: prompt,
-      store: false,
+    const response = await client.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
     });
 
-    const raw = interaction.output_text || '';
+    const raw = response.text || '';
     const jsonString = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
 
     let parsed;

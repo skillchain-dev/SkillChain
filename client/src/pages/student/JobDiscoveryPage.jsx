@@ -16,17 +16,9 @@ export default function JobDiscoveryPage() {
   const [filters, setFilters] = useState({});
   const [matchScores, setMatchScores] = useState({});
   const [loadingJobs, setLoadingJobs] = useState(true);
-
-  // Load saved skills from localStorage (populated by MySkillsPage / ResumePage)
-  const studentSkills = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('skillchain:skills') || '[]').map(
-        (s) => s.name
-      );
-    } catch {
-      return [];
-    }
-  })();
+  const [studentSkills, setStudentSkills] = useState([]);
+  const [skillsError, setSkillsError] = useState('');
+  const [matchError, setMatchError] = useState('');
 
   const change = (key) => (event) =>
     setFilters((prev) => ({ ...prev, [key]: event.target.value }));
@@ -41,10 +33,17 @@ export default function JobDiscoveryPage() {
       .finally(() => setLoadingJobs(false));
   }, [filters]);
 
+  useEffect(() => {
+    skillsApi.list()
+      .then(({ data }) => setStudentSkills(data.data.map((skill) => skill.name)))
+      .catch((error) => setSkillsError(error.message || 'Could not load your skills.'));
+  }, []);
+
   // After jobs load, compute AI match scores for each
   const computeMatches = useCallback(async (jobList) => {
     if (!studentSkills.length || !jobList.length) return;
     const scores = {};
+    let failed = false;
     await Promise.all(
       jobList.map(async (job) => {
         try {
@@ -54,12 +53,13 @@ export default function JobDiscoveryPage() {
           );
           scores[job._id] = data.data.score;
         } catch {
-          // Skip scoring for this job silently
+          failed = true;
         }
       })
     );
     setMatchScores(scores);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (failed) setMatchError('Some match scores could not be calculated.');
+  }, [studentSkills]);
 
   useEffect(() => {
     if (jobs.length) computeMatches(jobs);
@@ -109,6 +109,8 @@ export default function JobDiscoveryPage() {
             ))}
           </div>
         )}
+        {skillsError && <p role="alert" className="error">{skillsError}</p>}
+        {matchError && <p role="status" className="muted">{matchError}</p>}
 
         {!loadingJobs && !jobs.length && (
           <p className="empty">No open roles match those filters.</p>

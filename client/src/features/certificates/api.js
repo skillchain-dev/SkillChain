@@ -1,7 +1,12 @@
-import { api } from '../../services/httpClient.js';
-export const getDashboardStats = () => api('/admin/stats');
-export const getStudents = () => api('/admin/students');
-export const getPendingCertificates = () => api('/certificates/pending');
-export const getCertificate = (id) => api(`/certificates/${encodeURIComponent(id)}`);
-export const reviewCertificate = (id, data) => api(`/certificates/${encodeURIComponent(id)}/review`, { method: 'PATCH', body: JSON.stringify(data) });
-export const publicVerification = (id) => api(`/verify/${encodeURIComponent(id)}`);
+import httpClient from '../../services/httpClient.js';
+
+const unwrap = (response) => response.data.data;
+
+export const getDashboardStats = () => httpClient.get('/admin/stats').then(unwrap);
+export const getStudents = () => httpClient.get('/admin/students').then(unwrap);
+export const getMyCertificates = () => httpClient.get('/certificates/mine').then(unwrap);
+export const createCertificate = (payload) => httpClient.post('/certificates', payload).then(unwrap);
+export const getPendingCertificates = () => httpClient.get('/certificates/pending').then(unwrap);
+export const getCertificate = (id) => httpClient.get(`/certificates/${encodeURIComponent(id)}`).then(unwrap);
+export const reviewCertificate = (id, data) => httpClient.patch(`/certificates/${encodeURIComponent(id)}/review`, data).then(unwrap);
+export const publicVerification = (id) => httpClient.get(`/verify/${encodeURIComponent(id)}`).then(unwrap);

@@ -4,6 +4,7 @@ import PageHeader from '../../components/common/PageHeader.jsx';
 import ResumeUpload from '../../features/resumes/ResumeUpload.jsx';
 import ResumePreview from '../../features/resumes/ResumePreview.jsx';
 import ParseResultPanel from '../../features/resumes/ParseResultPanel.jsx';
+import { skillsApi } from '../../features/skills/api.js';
 
 /**
  * ResumePage — /student/resume
@@ -15,10 +16,21 @@ export default function ResumePage() {
   const [resumeText, setResumeText] = useState('');
   const [parseResult, setParseResult] = useState(null);
   const [error, setError] = useState('');
+  const [skillsSaved, setSkillsSaved] = useState(false);
 
-  function handleResult(result) {
+  async function handleResult(result) {
     setParseResult(result);
     setError('');
+    setSkillsSaved(false);
+    try {
+      const { data } = await skillsApi.list();
+      const existing = new Set(data.data.map((skill) => skill.name.toLowerCase()));
+      const newSkills = result.skills.filter((skill) => !existing.has(skill.name.toLowerCase()));
+      await Promise.all(newSkills.map((skill) => skillsApi.add({ name: skill.name })));
+      setSkillsSaved(true);
+    } catch (requestError) {
+      setError(requestError.message || 'Resume was parsed, but extracted skills could not be saved.');
+    }
   }
 
   function handleError(msg) {
@@ -53,6 +65,7 @@ export default function ResumePage() {
 
         {/* Parse result */}
         <ParseResultPanel result={parseResult} />
+        {skillsSaved && <p role="status" className="muted">Extracted skills were added to your profile. Review them on the Skills page.</p>}
 
         {/* Raw text preview */}
         <ResumePreview text={resumeText} />

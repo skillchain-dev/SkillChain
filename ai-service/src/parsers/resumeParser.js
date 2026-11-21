@@ -7,13 +7,12 @@ async function _geminiExtract(client, resumeText, catalog) {
     const skillNames = catalog.map((s) => s.name);
     const prompt = resumeExtractionPrompt({ resumeText, skills: skillNames });
 
-    const interaction = await client.interactions.create({
-      model: 'gemini-3.8-flash',
-      input: prompt,
-      store: false,
+    const response = await client.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
     });
 
-    const raw = interaction.output_text || '';
+    const raw = response.text || '';
     const jsonString = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
     let parsed;
 

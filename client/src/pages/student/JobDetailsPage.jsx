@@ -13,20 +13,14 @@ export default function JobDetailsPage() {
   const [message, setMessage] = useState('');
   const [matchResult, setMatchResult] = useState(null);
   const [matchLoading, setMatchLoading] = useState(false);
-
-  // Load saved student skills
-  const studentSkills = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('skillchain:skills') || '[]').map(
-        (s) => s.name
-      );
-    } catch {
-      return [];
-    }
-  })();
+  const [studentSkills, setStudentSkills] = useState([]);
+  const [skillsError, setSkillsError] = useState('');
 
   useEffect(() => {
     jobsApi.get(id).then(({ data }) => setJob(data.data));
+    skillsApi.list()
+      .then(({ data }) => setStudentSkills(data.data.map((skill) => skill.name)))
+      .catch((error) => setSkillsError(error.message || 'Could not load your skills.'));
   }, [id]);
 
   // Compute AI match once job is loaded
@@ -38,7 +32,7 @@ export default function JobDetailsPage() {
       .then(({ data }) => setMatchResult(data.data))
       .catch(() => setMatchResult(null))
       .finally(() => setMatchLoading(false));
-  }, [job]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [job, studentSkills]);
 
   if (!job)
     return (
@@ -96,6 +90,7 @@ export default function JobDetailsPage() {
               <MatchScore {...(matchResult || {})} loading={matchLoading} />
             </div>
           )}
+          {skillsError && <p role="alert" className="error">{skillsError}</p>}
 
           {!studentSkills.length && (
             <p

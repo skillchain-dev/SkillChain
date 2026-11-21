@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { Link } from 'react-router-dom';
 
 const VARIANTS = {
   primary: 'bg-clay-500 text-white hover:bg-clay-600 focus-visible:ring-clay-500',
@@ -15,18 +16,28 @@ const SIZES = {
 };
 
 const Button = forwardRef(function Button(
-  { variant = 'primary', size = 'md', loading = false, disabled, className = '', children, type = 'button', ...props },
+  { variant = 'primary', size = 'md', loading = false, disabled, className = '', children, type = 'button', to, ...props },
   ref
 ) {
+  const classes = `inline-flex items-center justify-center gap-2 rounded font-semibold tracking-tight transition-colors
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream
+    disabled:cursor-not-allowed disabled:opacity-60
+    ${VARIANTS[variant]} ${SIZES[size]} ${className}`;
+
+  if (to && !disabled) {
+    return (
+      <Link ref={ref} to={to} className={classes} {...props}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
     <button
       ref={ref}
       type={type}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded font-semibold tracking-tight transition-colors
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream
-        disabled:cursor-not-allowed disabled:opacity-60
-        ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={classes}
       {...props}
     >
       {loading && (

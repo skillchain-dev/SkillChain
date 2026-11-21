@@ -24,3 +24,11 @@
 .verification-card dt{color:#809086;font-size:12px;text-transform:uppercase;letter-spacing:1px}
 .verification-card dd{margin:0;font-size:14px;word-break:break-all}
 .error{color:#a94e3d;font-size:13px;margin-top:14px}
+.result{display:flex;align-items:center;gap:12px;font-size:16px;padding:8px 0}
+.result .status-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.result-verified .status-dot{background:#10b981;box-shadow:0 0 8px #10b981}
+.result-verified strong{color:#065f46}
+.result-unverified .status-dot{background:#f59e0b;box-shadow:0 0 8px #f59e0b}
+.result-unverified strong{color:#92400e}
+.result-invalid .status-dot{background:#ef4444;box-shadow:0 0 8px #ef4444}
+.result-invalid strong{color:#991b1b}

@@ -15,10 +15,11 @@ let _client = null;
 
 function getClient() {
   if (_client) return _client;
-  const apiKey = process.env.GEMINI_API_KEY || '';
-  if (!apiKey || !GoogleGenAI) return null;
+  const apiKey = (process.env.GEMINI_API_KEY || '').trim();
+  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey.startsWith('your_') || !GoogleGenAI) return null;
   try {
-    _client = new GoogleGenAI({ apiKey });
+    const timeout = Number(process.env.AI_TIMEOUT_MS) || 15000;
+    _client = new GoogleGenAI({ apiKey, httpOptions: { timeout: Math.max(12000, timeout) } });
     return _client;
   } catch (err) {
     console.warn('[ai-service] Failed to initialize GoogleGenAI client:', err.message);

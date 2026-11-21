@@ -28,8 +28,18 @@ test('auth routes reject invalid roles and unauthenticated profile requests', as
   assert.equal(profile.body.error.code, 'UNAUTHORIZED');
 });
 
+test('password reset endpoints validate malformed requests', async () => {
+  const requestReset = await request(app).post('/api/auth/forgot-password').send({ email: 'invalid' });
+  assert.equal(requestReset.status, 400);
+  assert.equal(requestReset.body.error.code, 'INVALID_EMAIL');
+
+  const reset = await request(app).post('/api/auth/reset-password').send({ token: 'bad', password: 'password123' });
+  assert.equal(reset.status, 400);
+  assert.equal(reset.body.error.code, 'INVALID_RESET_TOKEN');
+});
+
 test('access tokens verify only when their signature is unchanged', () => {
   const token = createAccessToken('user-id');
-  assert.deepEqual(verifyAccessToken(token), { sub: 'user-id' });
+  assert.deepEqual(verifyAccessToken(token), { sub: 'user-id', ver: 0 });
   assert.equal(verifyAccessToken(`${token.slice(0, -1)}x`), null);
 });

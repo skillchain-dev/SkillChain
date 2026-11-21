@@ -20,12 +20,11 @@ export default function ForgotPasswordPage() {
     setSubmitting(true);
     try {
       await httpClient.post('/auth/forgot-password', { email });
+      setSent(true);
     } catch {
-      // Regardless of whether the account exists or the endpoint is wired up yet,
-      // we never reveal account existence — the confirmation message is the same either way.
+      setError('We could not submit your request. Please try again.');
     } finally {
       setSubmitting(false);
-      setSent(true);
     }
   }
 

@@ -15,6 +15,7 @@ export function useChat() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const messagesRef = useRef(messages);
+  const interactionIdRef = useRef(null);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   const send = useCallback(async (text) => {
@@ -33,11 +34,15 @@ export function useChat() {
     setLoading(true);
 
     try {
-      const { reply } = await chatbotApi.send({ message, history });
+      const data = await chatbotApi.send({ message, history, previousInteractionId: interactionIdRef.current });
+      const reply = data?.reply || 'Sorry, I have no answer for that.';
+      if (data?.interactionId) {
+        interactionIdRef.current = data.interactionId;
+      }
       // animate: true => the reply is shown with a typewriter effect once.
       setMessages((prev) => [
         ...prev,
-        { id: nextId(), role: 'assistant', content: reply || 'Sorry, I have no answer for that.', animate: true },
+        { id: nextId(), role: 'assistant', content: reply, animate: true },
       ]);
     } catch (err) {
       setError(err.message || 'Could not reach the assistant. Please try again.');
@@ -48,12 +53,15 @@ export function useChat() {
 
   // Called by ChatMessage when the typewriter finishes, so it never replays.
   const markDone = useCallback((id) => {
-    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, animate: false } : m)));
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, animate: false } : m))
+    );
   }, []);
 
   const reset = useCallback(() => {
     setMessages([GREETING]);
     setError('');
+    interactionIdRef.current = null;
   }, []);
 
   return { messages, loading, error, send, reset, markDone };

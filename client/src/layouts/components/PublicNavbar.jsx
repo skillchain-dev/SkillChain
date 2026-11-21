@@ -1,13 +1,20 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { PUBLIC_NAV } from '../../constants/navigation.js';
 import { useAuth } from '../../features/auth/useAuth.js';
 import { DASHBOARD_HOME } from '../../constants/roles.js';
 import Button from '../../components/ui/Button.jsx';
 
 export default function PublicNavbar() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    setOpen(false);
+    await logout();
+    navigate('/login', { replace: true });
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-mist-200 bg-cream/90 backdrop-blur">
@@ -31,13 +38,27 @@ export default function PublicNavbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           {isAuthenticated ? (
-            <Link to={DASHBOARD_HOME[user?.role] || '/'}>
-              <Button variant="secondary" size="sm">Go to dashboard</Button>
-            </Link>
+            <>
+              <Button to={DASHBOARD_HOME[user?.role] || '/'} variant="secondary" size="sm">
+                Go to dashboard
+              </Button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-semibold text-danger-600 hover:bg-danger-50 transition-colors"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Log out</span>
+              </button>
+            </>
           ) : (
             <>
               <Link to="/login" className="text-sm font-semibold text-forest-700 hover:text-clay-600">Log in</Link>
-              <Link to="/register"><Button size="sm">Get started</Button></Link>
+              <Button to="/register" size="sm">Get started</Button>
             </>
           )}
         </div>
@@ -69,13 +90,27 @@ export default function PublicNavbar() {
             ))}
             <div className="mt-2 flex flex-col gap-2 border-t border-mist-200 pt-4">
               {isAuthenticated ? (
-                <Link to={DASHBOARD_HOME[user?.role] || '/'} onClick={() => setOpen(false)}>
-                  <Button variant="secondary" className="w-full">Go to dashboard</Button>
-                </Link>
+                <>
+                  <Button to={DASHBOARD_HOME[user?.role] || '/'} variant="secondary" className="w-full" onClick={() => setOpen(false)}>
+                    Go to dashboard
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center justify-center gap-1.5 rounded px-3 py-2 text-sm font-semibold text-danger-600 hover:bg-danger-50 transition-colors"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    <span>Log out</span>
+                  </button>
+                </>
               ) : (
                 <>
                   <Link to="/login" onClick={() => setOpen(false)} className="text-sm font-semibold text-forest-700">Log in</Link>
-                  <Link to="/register" onClick={() => setOpen(false)}><Button className="w-full">Get started</Button></Link>
+                  <Button to="/register" className="w-full" onClick={() => setOpen(false)}>Get started</Button>
                 </>
               )}
             </div>

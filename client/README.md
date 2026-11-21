@@ -54,7 +54,7 @@ src/
 ## Authentication & routing
 
 - `features/auth` holds the auth context (`authStore.jsx` + `useAuth.js`), the login/register forms,
-  and `api.js` for the three backend auth endpoints (`/auth/login`, `/auth/register`, `/auth/me`).
+  and `api.js` for login, registration, session, and password-reset endpoints.
 - The JWT is stored via `services/storage.js` under the `skillchain_token` key and attached to every
   request by `services/httpClient.js`. A 401 response clears the session automatically.
 - `routes/ProtectedRoute.jsx` requires a signed-in user; `routes/RoleRoute.jsx` additionally restricts
